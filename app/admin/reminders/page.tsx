@@ -1,5 +1,7 @@
 import Link from "next/link";
+import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
+import { sendEmail } from "@/lib/email";
 
 export const dynamic = "force-dynamic";
 
@@ -30,6 +32,158 @@ function humanStatus(status: string) {
   };
 
   return map[status] || status;
+}
+
+function textValue(formData: FormData, key: string) {
+  const value = formData.get(key);
+  return typeof value === "string" ? value.trim() : "";
+}
+
+async function sendReminderNow(formData: FormData) {
+  "use server";
+
+  const reminderId = textValue(formData, "reminderId");
+
+  if (!reminderId) {
+    throw new Error("Missing reminder ID.");
+  }
+
+  const reminder = await prisma.reminder.findUnique({
+    where: {
+      id: reminderId
+    },
+    include: {
+      customer: true,
+      repairCase: {
+        include: {
+          customer: true,
+          device: true
+        }
+      }
+    }
+  });
+
+  if (!reminder) {
+    throw new Error("Reminder not found.");
+  }
+
+  if (reminder.status === "CANCELLED") {
+    throw new Error("Cannot send a cancelled reminder.");
+  }
+
+  const recipientEmail = reminder.customer?.email || reminder.repairCase?.customer?.email || "";
+  const recipientName = reminder.customer?.name || reminder.repairCase?.customer?.name || "client";
+  const trackingId = reminder.repairCase?.trackingId || "";
+  const deviceLabel = reminder.repairCase?.device
+    ? [reminder.repairCase.device.type, reminder.repairCase.device.brand, reminder.repairCase.device.model]
+        .filter(Boolean)
+        .join(" ")
+    : "";
+
+  if (!recipientEmail) {
+    await prisma.changelogEntry.create({
+      data: {
+        version: "0.1.0-dev",
+        type: "ADMIN",
+        module: "Reminders",
+        title: "Reminder could not be sent",
+        description: `Reminder ${reminder.id} has no recipient email.`,
+        status: "DONE"
+      }
+    });
+
+    revalidatePath("/admin/reminders");
+
+    throw new Error("This reminder has no recipient email.");
+  }
+
+  const subject =
+    reminder.subject ||
+    `Reminder service ${trackingId ? `- ${trackingId}` : ""}`;
+
+  const message =
+    reminder.message ||
+    [
+      `Bună, ${recipientName},`,
+      "",
+      "A trecut o perioadă de la ultima intervenție service.",
+      deviceLabel ? `Echipament: ${deviceLabel}` : "",
+      trackingId ? `Cod tracking: ${trackingId}` : "",
+      "",
+      "Recomandăm o verificare preventivă pentru curățare, temperaturi și funcționare.",
+      "",
+      "Pentrunoi.ro"
+    ]
+      .filter(Boolean)
+      .join("\n");
+
+  const result = await sendEmail({
+    to: recipientEmail,
+    subject,
+    text: message
+  });
+
+  await prisma.reminder.update({
+    where: {
+      id: reminder.id
+    },
+    data: {
+      status: "SENT",
+      sentAt: new Date()
+    }
+  });
+
+  await prisma.changelogEntry.create({
+    data: {
+      version: "0.1.0-dev",
+      type: "FEATURE",
+      module: "Reminders",
+      title: `Reminder sent: ${trackingId || reminder.id}`,
+      description: result.sent
+        ? `Reminder email was sent to ${recipientEmail}.`
+        : `Reminder was processed but email was skipped: ${result.reason || "unknown reason"}.`,
+      status: "DONE"
+    }
+  });
+
+  revalidatePath("/admin/reminders");
+
+  if (trackingId) {
+    revalidatePath(`/admin/repairs/${trackingId}`);
+    revalidatePath(`/admin/repairs/${trackingId}/reminders`);
+  }
+}
+
+async function cancelReminder(formData: FormData) {
+  "use server";
+
+  const reminderId = textValue(formData, "reminderId");
+
+  if (!reminderId) {
+    throw new Error("Missing reminder ID.");
+  }
+
+  await prisma.reminder.update({
+    where: {
+      id: reminderId
+    },
+    data: {
+      status: "CANCELLED"
+    }
+  });
+
+  await prisma.changelogEntry.create({
+    data: {
+      version: "0.1.0-dev",
+      type: "ADMIN",
+      module: "Reminders",
+      title: "Reminder cancelled",
+      description: `Reminder ${reminderId} was cancelled from admin.`,
+      status: "DONE"
+    }
+  });
+
+  revalidatePath("/admin/reminders");
 }
 
 export default async function AdminRemindersPage() {
@@ -64,7 +218,7 @@ export default async function AdminRemindersPage() {
         </h1>
         <p className="mt-3 max-w-3xl text-slate-700">
           Urmărire remindere pentru curățare laptop, verificare termică, health check,
-          mentenanță IT business și mentenanță website.
+          mentenanță IT business și mentenanță website. Trimiterea automată va fi adăugată ulterior.
         </p>
       </div>
 
@@ -78,7 +232,7 @@ export default async function AdminRemindersPage() {
               <th className="p-4">Client</th>
               <th className="p-4">Lucrare</th>
               <th className="p-4">Subiect</th>
-              <th className="p-4">Acțiune</th>
+              <th className="p-4">Acțiuni</th>
             </tr>
           </thead>
           <tbody>
@@ -93,7 +247,20 @@ export default async function AdminRemindersPage() {
                 <tr key={reminder.id} className="border-t border-slate-100 align-top">
                   <td className="p-4">{formatDate(reminder.scheduledFor)}</td>
                   <td className="p-4">{humanType(reminder.type)}</td>
-                  <td className="p-4">{humanStatus(reminder.status)}</td>
+                  <td className="p-4">
+                    <span
+                      className={[
+                        "rounded-full px-3 py-1 text-xs font-semibold",
+                        reminder.status === "SENT"
+                          ? "bg-emerald-50 text-emerald-800"
+                          : reminder.status === "CANCELLED"
+                            ? "bg-red-50 text-red-800"
+                            : "bg-amber-50 text-amber-800"
+                      ].join(" ")}
+                    >
+                      {humanStatus(reminder.status)}
+                    </span>
+                  </td>
                   <td className="p-4">
                     <div className="font-medium text-slate-950">
                       {reminder.customer?.name || reminder.repairCase?.customer?.name || "N/A"}
@@ -130,16 +297,40 @@ export default async function AdminRemindersPage() {
                     ) : null}
                   </td>
                   <td className="p-4">
-                    {reminder.repairCase ? (
-                      <Link
-                        href={`/admin/repairs/${reminder.repairCase.trackingId}/reminders`}
-                        className="rounded-lg bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-900"
-                      >
-                        Deschide
-                      </Link>
-                    ) : (
-                      "—"
-                    )}
+                    <div className="flex flex-wrap gap-2">
+                      {reminder.repairCase ? (
+                        <Link
+                          href={`/admin/repairs/${reminder.repairCase.trackingId}/reminders`}
+                          className="rounded-lg bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-900"
+                        >
+                          Deschide
+                        </Link>
+                      ) : null}
+
+                      {reminder.status === "SCHEDULED" ? (
+                        <>
+                          <form action={sendReminderNow}>
+                            <input type="hidden" name="reminderId" value={reminder.id} />
+                            <button
+                              type="submit"
+                              className="rounded-lg bg-emerald-700 px-3 py-2 text-xs font-semibold text-white"
+                            >
+                              Send now
+                            </button>
+                          </form>
+
+                          <form action={cancelReminder}>
+                            <input type="hidden" name="reminderId" value={reminder.id} />
+                            <button
+                              type="submit"
+                              className="rounded-lg bg-red-700 px-3 py-2 text-xs font-semibold text-white"
+                            >
+                              Cancel
+                            </button>
+                          </form>
+                        </>
+                      ) : null}
+                    </div>
                   </td>
                 </tr>
               ))
