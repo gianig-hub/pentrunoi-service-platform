@@ -65,6 +65,9 @@ export default async function AdminRepairDetailPage({ params }: PageProps) {
     notFound();
   }
 
+  const repairId = repair.id;
+  const repairTrackingId = repair.trackingId;
+
   async function updateRepair(formData: FormData) {
     "use server";
 
@@ -77,7 +80,7 @@ export default async function AdminRepairDetailPage({ params }: PageProps) {
     const courierOutboundAwb = textValue(formData, "courierOutboundAwb");
 
     await prisma.repairCase.update({
-      where: { id: repair.id },
+      where: { id: repairId },
       data: {
         status,
         publicNotes: publicNotes || null,
@@ -100,15 +103,15 @@ export default async function AdminRepairDetailPage({ params }: PageProps) {
         version: "0.1.0-dev",
         type: "ADMIN",
         module: "Repairs",
-        title: `Repair status updated: ${repair.trackingId}`,
-        description: `Repair case ${repair.trackingId} was updated to ${status}.`,
+        title: `Repair status updated: ${repairTrackingId}`,
+        description: `Repair case ${repairTrackingId} was updated to ${status}.`,
         status: "DONE"
       }
     });
 
-    revalidatePath(`/admin/repairs/${repair.id}`);
+    revalidatePath(`/admin/repairs/${repairId}`);
     revalidatePath("/admin/repairs");
-    revalidatePath(`/status/${repair.trackingId}`);
+    revalidatePath(`/status/${repairTrackingId}`);
   }
 
   return (

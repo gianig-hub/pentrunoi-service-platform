@@ -68,6 +68,9 @@ export default async function AdminLeadDetailPage({ params }: PageProps) {
     notFound();
   }
 
+  const leadId = lead.id;
+  const leadTrackingId = lead.trackingId;
+
   async function updateLead(formData: FormData) {
     "use server";
 
@@ -76,7 +79,7 @@ export default async function AdminLeadDetailPage({ params }: PageProps) {
     const internalNotes = textValue(formData, "internalNotes");
 
     await prisma.lead.update({
-      where: { id: lead.id },
+      where: { id: leadId },
       data: {
         status,
         publicNotes: publicNotes || null,
@@ -89,15 +92,15 @@ export default async function AdminLeadDetailPage({ params }: PageProps) {
         version: "0.1.0-dev",
         type: "ADMIN",
         module: "Leads",
-        title: `Lead status updated: ${lead.trackingId}`,
-        description: `Lead ${lead.trackingId} was updated to ${status}.`,
+        title: `Lead status updated: ${leadTrackingId}`,
+        description: `Lead ${leadTrackingId} was updated to ${status}.`,
         status: "DONE"
       }
     });
 
-    revalidatePath(`/admin/leads/${lead.id}`);
+    revalidatePath(`/admin/leads/${leadId}`);
     revalidatePath("/admin/leads");
-    revalidatePath(`/status/${lead.trackingId}`);
+    revalidatePath(`/status/${leadTrackingId}`);
   }
 
   return (

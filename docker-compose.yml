@@ -13,20 +13,32 @@ services:
       - "127.0.0.1:5435:5432"
 
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: node:22-bookworm-slim
     container_name: pentrunoi_app
     restart: unless-stopped
+    working_dir: /app
     depends_on:
       - db
     env_file:
       - .env
+    environment:
+      NEXT_TELEMETRY_DISABLED: "1"
+      DATABASE_URL: "postgresql://pentrunoi:change-me@db:5432/pentrunoi_service_platform?schema=public"
+      UPLOADS_DIR: "/app/uploads"
     volumes:
+      - ./:/app
       - pentrunoi_uploads:/app/uploads
-    ports:
-      - "3000:3000"
+    command: sh -lc "npm install --no-audit --no-fund && npx prisma generate && npm run dev -- -H 0.0.0.0 -p 3000"
+    expose:
+      - "3000"
+    networks:
+      - default
+      - webproxy
 
 volumes:
   pentrunoi_db_data:
   pentrunoi_uploads:
+
+networks:
+  webproxy:
+    external: true
