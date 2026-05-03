@@ -65,6 +65,16 @@ export default function AdminPage() {
             Vezi notificările trimise, eșuate sau omise în development.
           </p>
         </Link>
+
+        <Link
+          href="/admin/reminders"
+          className="rounded-2xl bg-white p-5 shadow-sm transition hover:shadow-md"
+        >
+          <h2 className="font-semibold text-slate-950">Reminders</h2>
+          <p className="mt-2 text-sm text-slate-600">
+            Vezi remindere pentru service, mentenanță și follow-up.
+          </p>
+        </Link>
       </div>
     </main>
   );
