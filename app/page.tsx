@@ -25,6 +25,15 @@ export default function HomePage() {
           <p className="mt-2 text-sm text-slate-600">Local /uploads strategy.</p>
         </div>
       </div>
+
+      <div className="mt-8">
+        <a
+          href="/cerere-service"
+          className="inline-flex rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white"
+        >
+          Trimite cerere service
+        </a>
+      </div>
     </main>
   );
 }
