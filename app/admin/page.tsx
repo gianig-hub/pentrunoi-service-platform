@@ -166,6 +166,11 @@ export default async function AdminPage() {
       description: "Vezi notificările trimise, eșuate sau omise în development."
     },
     {
+      href: "/admin/exports",
+      title: "Exports",
+      description: "Descarcă CSV pentru reparații, lead-uri, clienți, remindere și email logs."
+    },
+    {
       href: "/admin/settings",
       title: "Settings",
       description: "Editează date companie, legal, garanții, curier și contact."
