@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import { prisma } from "@/lib/prisma";
 
 type SendEmailInput = {
   to: string;
@@ -20,6 +21,34 @@ function isSmtpConfigured() {
   );
 }
 
+async function createEmailLog(input: {
+  to: string;
+  from: string;
+  replyTo?: string;
+  subject: string;
+  body: string;
+  status: "SENT" | "FAILED" | "SKIPPED";
+  reason?: string;
+  error?: string;
+}) {
+  try {
+    await prisma.emailLog.create({
+      data: {
+        to: input.to,
+        from: input.from,
+        replyTo: input.replyTo || null,
+        subject: input.subject,
+        body: input.body,
+        status: input.status,
+        reason: input.reason || null,
+        error: input.error || null
+      }
+    });
+  } catch (error) {
+    console.error("EMAIL LOG FAILED", error);
+  }
+}
+
 export async function sendEmail(input: SendEmailInput) {
   const from =
     getEnv("SMTP_FROM") ||
@@ -34,6 +63,16 @@ export async function sendEmail(input: SendEmailInput) {
       replyTo: input.replyTo,
       subject: input.subject,
       text: input.text
+    });
+
+    await createEmailLog({
+      to: input.to,
+      from,
+      replyTo: input.replyTo,
+      subject: input.subject,
+      body: input.text,
+      status: "SKIPPED",
+      reason: "SMTP_NOT_CONFIGURED"
     });
 
     return {
@@ -55,17 +94,42 @@ export async function sendEmail(input: SendEmailInput) {
     }
   });
 
-  await transporter.sendMail({
-    from,
-    to: input.to,
-    replyTo: input.replyTo,
-    subject: input.subject,
-    text: input.text
-  });
+  try {
+    await transporter.sendMail({
+      from,
+      to: input.to,
+      replyTo: input.replyTo,
+      subject: input.subject,
+      text: input.text
+    });
 
-  return {
-    sent: true
-  };
+    await createEmailLog({
+      to: input.to,
+      from,
+      replyTo: input.replyTo,
+      subject: input.subject,
+      body: input.text,
+      status: "SENT"
+    });
+
+    return {
+      sent: true
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown email error";
+
+    await createEmailLog({
+      to: input.to,
+      from,
+      replyTo: input.replyTo,
+      subject: input.subject,
+      body: input.text,
+      status: "FAILED",
+      error: message
+    });
+
+    throw error;
+  }
 }
 
 export function getAdminEmail() {

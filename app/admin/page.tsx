@@ -55,6 +55,16 @@ export default function AdminPage() {
             Editează date companie, legal, garanții, curier și contact.
           </p>
         </Link>
+
+        <Link
+          href="/admin/email-logs"
+          className="rounded-2xl bg-white p-5 shadow-sm transition hover:shadow-md"
+        >
+          <h2 className="font-semibold text-slate-950">Email logs</h2>
+          <p className="mt-2 text-sm text-slate-600">
+            Vezi notificările trimise, eșuate sau omise în development.
+          </p>
+        </Link>
       </div>
     </main>
   );
