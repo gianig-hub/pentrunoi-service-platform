@@ -10,7 +10,7 @@ services:
     volumes:
       - pentrunoi_db_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5435:5432"
 
   app:
     build:
