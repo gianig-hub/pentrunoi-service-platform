@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { generateTrackingId } from "@/lib/tracking";
+import { sendEmail, getAdminEmail } from "@/lib/email";
 
 function value(formData: FormData, key: string) {
   const raw = formData.get(key);
@@ -82,7 +83,42 @@ async function createRepairRequest(formData: FormData) {
     }
   });
 
-  redirect(`/status/${repairCase.trackingId}`);
+  const statusUrl = `/status/${repairCase.trackingId}`;
+
+  await sendEmail({
+    to: email,
+    subject: `Cerere service primită - ${repairCase.trackingId}`,
+    text: [
+      `Bună, ${name},`,
+      "",
+      "Cererea ta de service a fost primită.",
+      `Cod tracking: ${repairCase.trackingId}`,
+      `Status online: ${statusUrl}`,
+      "",
+      "Poți urmări statusul folosind codul primit, fără cont client.",
+      "",
+      "Pentrunoi.ro"
+    ].join("\n")
+  });
+
+  await sendEmail({
+    to: getAdminEmail(),
+    replyTo: email,
+    subject: `Cerere service nouă - ${repairCase.trackingId}`,
+    text: [
+      "Cerere service nouă.",
+      `Tracking: ${repairCase.trackingId}`,
+      `Client: ${name}`,
+      `Email: ${email}`,
+      `Telefon: ${phone || "N/A"}`,
+      `Echipament: ${deviceType} ${brand} ${model}`,
+      "",
+      "Problemă:",
+      issueReported
+    ].join("\n")
+  });
+
+  redirect(statusUrl);
 }
 
 export default function RepairRequestPage() {

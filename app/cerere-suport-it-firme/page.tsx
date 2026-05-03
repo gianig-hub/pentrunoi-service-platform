@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { generateTrackingId } from "@/lib/tracking";
+import { sendEmail, getAdminEmail } from "@/lib/email";
 
 function value(formData: FormData, key: string) {
   const raw = formData.get(key);
@@ -67,7 +68,42 @@ async function createBusinessItLead(formData: FormData) {
     }
   });
 
-  redirect(`/status/${lead.trackingId}`);
+  const statusUrl = `/status/${lead.trackingId}`;
+
+  await sendEmail({
+    to: email,
+    subject: `Cerere suport IT business primită - ${lead.trackingId}`,
+    text: [
+      `Bună, ${name},`,
+      "",
+      "Cererea ta a fost primită.",
+      `Cod tracking: ${lead.trackingId}`,
+      `Status online: ${statusUrl}`,
+      "",
+      "Poți urmări statusul folosind codul primit, fără cont client.",
+      "",
+      "Pentrunoi.ro"
+    ].join("\\n")
+  });
+
+  await sendEmail({
+    to: getAdminEmail(),
+    replyTo: email,
+    subject: `Business IT lead nou - ${lead.trackingId}`,
+    text: [
+      "Lead nou.",
+      `Tracking: ${lead.trackingId}`,
+      `Tip: Business IT`,
+      `Client: ${name}`,
+      `Email: ${email}`,
+      `Firmă: ${companyName || "N/A"}`,
+      "",
+      "Mesaj:",
+      message
+    ].join("\\n")
+  });
+
+  redirect(statusUrl);
 }
 
 export default function BusinessItRequestPage() {
