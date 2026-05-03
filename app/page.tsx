@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SeoJsonLd } from "@/components/SeoJsonLd";
 
 const cards = [
   {
@@ -34,8 +35,62 @@ const cards = [
 ];
 
 export default function HomePage() {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://dev.pentrunoi.ro";
+
   return (
     <main>
+      <SeoJsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "LocalBusiness",
+          name: "Pentrunoi.ro - Service Laptop Giani",
+          url: siteUrl,
+          image: `${siteUrl}/logo-pentrunoi.png`,
+          email: "contact@pentrunoi.ro",
+          address: {
+            "@type": "PostalAddress",
+            streetAddress: "Str. Văleni, Nr. 67",
+            addressLocality: "Ploiești",
+            addressRegion: "Prahova",
+            addressCountry: "RO"
+          },
+          areaServed: [
+            "Ploiești",
+            "Prahova",
+            "România"
+          ],
+          makesOffer: [
+            {
+              "@type": "Offer",
+              itemOffered: {
+                "@type": "Service",
+                name: "Service laptop și calculatoare"
+              }
+            },
+            {
+              "@type": "Offer",
+              itemOffered: {
+                "@type": "Service",
+                name: "Reparații laptop prin curier"
+              }
+            },
+            {
+              "@type": "Offer",
+              itemOffered: {
+                "@type": "Service",
+                name: "Suport IT firme"
+              }
+            },
+            {
+              "@type": "Offer",
+              itemOffered: {
+                "@type": "Service",
+                name: "Web design și aplicații web"
+              }
+            }
+          ]
+        }}
+      />
       <section className="mx-auto max-w-7xl px-6 py-16">
         <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
           Pentrunoi.ro — versiune de dezvoltare
