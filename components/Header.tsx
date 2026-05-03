@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 const navLinks = [
@@ -14,8 +15,15 @@ export function Header() {
   return (
     <header className="border-b border-slate-200 bg-white">
       <div className="mx-auto flex max-w-7xl flex-col gap-4 px-6 py-5 lg:flex-row lg:items-center lg:justify-between">
-        <Link href="/" className="text-lg font-bold tracking-tight text-slate-950">
-          Pentrunoi.ro
+        <Link href="/" className="inline-flex items-center">
+          <Image
+            src="/logo-pentrunoi.png"
+            alt="Pentrunoi.ro - Service Laptop Giani"
+            width={225}
+            height={51}
+            priority
+            className="h-auto w-[225px] max-w-full"
+          />
         </Link>
 
         <nav className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-slate-700">

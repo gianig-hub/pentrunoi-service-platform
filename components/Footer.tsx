@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 const legalLinks = [
   { href: "/informatii-legale", label: "Informații legale" },
   { href: "/termeni-si-conditii", label: "Termeni și condiții" },
@@ -15,8 +17,14 @@ export function Footer() {
       <div className="mx-auto max-w-7xl px-6 py-10">
         <div className="grid gap-8 lg:grid-cols-3">
           <div>
-            <h2 className="font-semibold text-slate-950">Pentrunoi.ro</h2>
-            <p className="mt-3 text-sm text-slate-600">
+            <Image
+              src="/logo-pentrunoi.png"
+              alt="Pentrunoi.ro - Service Laptop Giani"
+              width={180}
+              height={41}
+              className="h-auto w-[180px]"
+            />
+            <p className="mt-4 text-sm text-slate-600">
               Service laptop și calculatoare, cereri prin curier, status tracking,
               suport IT și proiecte digitale. Contact principal prin formulare.
             </p>
