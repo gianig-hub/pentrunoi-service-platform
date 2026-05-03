@@ -12,3 +12,14 @@ yarn-error.log*
 pnpm-debug.log*
 uploads/*
 !uploads/.gitkeep
+
+# Local backups and exports
+backups/database/*
+backups/uploads/*
+exports/*
+!backups/database/.gitkeep
+!backups/uploads/.gitkeep
+!exports/.gitkeep
+
+# Local compose backups
+*.bak-*
