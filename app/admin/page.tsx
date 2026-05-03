@@ -171,6 +171,11 @@ export default async function AdminPage() {
       description: "Descarcă CSV pentru reparații, lead-uri, clienți, remindere și email logs."
     },
     {
+      href: "/admin/system",
+      title: "System health",
+      description: "Verifică database, uploads, SMTP, mediu și pregătirea pentru migrare."
+    },
+    {
       href: "/admin/settings",
       title: "Settings",
       description: "Editează date companie, legal, garanții, curier și contact."
