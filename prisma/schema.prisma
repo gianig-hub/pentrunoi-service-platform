@@ -1,0 +1,25 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/*
+  Business models will be added in the next tasks.
+
+  Planned models:
+  - AdminUser
+  - SiteSetting
+  - ChangelogEntry
+  - Customer
+  - Device
+  - RepairCase
+  - StatusUpdate
+  - UploadedFile
+  - Quote
+  - Reminder
+  - Lead
+*/

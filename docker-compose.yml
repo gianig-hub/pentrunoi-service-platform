@@ -1,0 +1,32 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: pentrunoi_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: pentrunoi
+      POSTGRES_PASSWORD: change-me
+      POSTGRES_DB: pentrunoi_service_platform
+    volumes:
+      - pentrunoi_db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pentrunoi_app
+    restart: unless-stopped
+    depends_on:
+      - db
+    env_file:
+      - .env
+    volumes:
+      - pentrunoi_uploads:/app/uploads
+    ports:
+      - "3000:3000"
+
+volumes:
+  pentrunoi_db_data:
+  pentrunoi_uploads:
