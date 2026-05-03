@@ -12,7 +12,7 @@ export default function AdminPage() {
       </h1>
 
       <p className="mt-4 max-w-2xl text-slate-700">
-        Zonă rezervată pentru dashboard, reparații, changelog și setări.
+        Zonă rezervată pentru dashboard, reparații, lead-uri, changelog și setări.
       </p>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2">
@@ -33,6 +33,16 @@ export default function AdminPage() {
           <h2 className="font-semibold text-slate-950">Repair cases</h2>
           <p className="mt-2 text-sm text-slate-600">
             Vezi și actualizează cererile service primite.
+          </p>
+        </Link>
+
+        <Link
+          href="/admin/leads"
+          className="rounded-2xl bg-white p-5 shadow-sm transition hover:shadow-md"
+        >
+          <h2 className="font-semibold text-slate-950">Leads</h2>
+          <p className="mt-2 text-sm text-slate-600">
+            Gestionează cereri WEB, IT și NET primite prin formulare.
           </p>
         </Link>
       </div>
