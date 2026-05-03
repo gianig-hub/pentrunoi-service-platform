@@ -122,16 +122,25 @@ export default async function AdminRepairDetailPage({ params }: PageProps) {
         ← Back to repair cases
       </Link>
 
-      <div className="mt-6">
-        <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-          Repair case
-        </p>
-        <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-950">
-          {repair.trackingId}
-        </h1>
-        <p className="mt-3 text-slate-700">
-          Status actual: <strong>{humanStatus(repair.status)}</strong>
-        </p>
+      <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+            Repair case
+          </p>
+          <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-950">
+            {repair.trackingId}
+          </h1>
+          <p className="mt-3 text-slate-700">
+            Status actual: <strong>{humanStatus(repair.status)}</strong>
+          </p>
+        </div>
+
+        <Link
+          href={`/admin/repairs/${repair.trackingId}/print`}
+          className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-950"
+        >
+          Print job card
+        </Link>
       </div>
 
       <div className="mt-8 grid gap-6 lg:grid-cols-3">
