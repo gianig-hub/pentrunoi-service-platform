@@ -23,6 +23,15 @@ export default function AdminPage() {
             Vezi istoricul de lucru, modificările și modulele dezvoltate.
           </p>
         </Link>
+        <a
+          href="/admin/repairs"
+          className="rounded-2xl bg-white p-5 shadow-sm transition hover:shadow-md"
+        >
+          <h2 className="font-semibold text-slate-950">Repair cases</h2>
+          <p className="mt-2 text-sm text-slate-600">
+            Vezi și actualizează cererile service primite.
+          </p>
+        </a>
       </div>
     </main>
   );
