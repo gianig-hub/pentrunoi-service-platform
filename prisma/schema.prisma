@@ -7,19 +7,290 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-/*
-  Business models will be added in the next tasks.
+enum AdminRole {
+  OWNER
+  ADMIN
+  STAFF
+}
 
-  Planned models:
-  - AdminUser
-  - SiteSetting
-  - ChangelogEntry
-  - Customer
-  - Device
-  - RepairCase
-  - StatusUpdate
-  - UploadedFile
-  - Quote
-  - Reminder
-  - Lead
-*/
+enum ChangelogType {
+  PLANNING
+  FEATURE
+  FIX
+  SECURITY
+  LEGAL
+  SEO
+  DATABASE
+  ADMIN
+  DEPLOYMENT
+}
+
+enum WorkStatus {
+  PLANNED
+  IN_PROGRESS
+  DONE
+  BLOCKED
+}
+
+enum CaseStatus {
+  REQUEST_RECEIVED
+  WAITING_FOR_DEVICE
+  DEVICE_RECEIVED
+  DIAGNOSIS_IN_PROGRESS
+  QUOTE_SENT
+  WAITING_FOR_APPROVAL
+  APPROVED
+  IN_REPAIR
+  TESTING
+  READY_FOR_RETURN
+  SENT_TO_CUSTOMER
+  COMPLETED
+  REJECTED
+  CLOSED
+}
+
+enum LeadType {
+  BUSINESS_IT
+  CONNECTIVITY
+  DIGITAL_PROJECT
+  GENERAL_CONTACT
+}
+
+enum LeadStatus {
+  NEW
+  IN_REVIEW
+  QUESTIONS_SENT
+  QUOTE_SENT
+  APPROVED
+  IN_PROGRESS
+  COMPLETED
+  CLOSED
+}
+
+enum ReminderType {
+  LAPTOP_CLEANING
+  THERMAL_CHECK
+  HEALTH_CHECK
+  BUSINESS_IT_MAINTENANCE
+  WEBSITE_MAINTENANCE
+}
+
+enum ReminderStatus {
+  SCHEDULED
+  SENT
+  CANCELLED
+}
+
+enum UploadVisibility {
+  PRIVATE
+  PUBLIC
+}
+
+model AdminUser {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  name         String?
+  passwordHash String
+  role         AdminRole @default(ADMIN)
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  changelogEntries ChangelogEntry[]
+}
+
+model SiteSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String?
+  group     String   @default("general")
+  isPublic  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ChangelogEntry {
+  id          String        @id @default(cuid())
+  version     String
+  type        ChangelogType @default(FEATURE)
+  module      String
+  title       String
+  description String
+  status      WorkStatus    @default(DONE)
+  createdById String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  createdBy AdminUser? @relation(fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([version])
+  @@index([module])
+  @@index([createdAt])
+}
+
+model Customer {
+  id        String   @id @default(cuid())
+  name      String
+  email     String?
+  phone     String?
+  city      String?
+  county    String?
+  address   String?
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  devices     Device[]
+  repairCases RepairCase[]
+  leads       Lead[]
+
+  @@index([email])
+  @@index([phone])
+}
+
+model Device {
+  id           String   @id @default(cuid())
+  customerId   String?
+  type         String
+  brand        String?
+  model        String?
+  serialNumber String?
+  notes        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  customer    Customer?    @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  repairCases RepairCase[]
+
+  @@index([customerId])
+  @@index([serialNumber])
+}
+
+model RepairCase {
+  id                     String     @id @default(cuid())
+  trackingId             String     @unique
+  customerId             String?
+  deviceId               String?
+  status                 CaseStatus @default(REQUEST_RECEIVED)
+  issueReported          String
+  diagnosis              String?
+  workDone               String?
+  partsUsed              String?
+  publicNotes            String?
+  internalNotes          String?
+  courierInboundAwb      String?
+  courierOutboundAwb     String?
+  warrantyUntil          DateTime?
+  nextRecommendedService DateTime?
+  createdAt              DateTime   @default(now())
+  updatedAt              DateTime   @updatedAt
+
+  customer      Customer?      @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  device        Device?        @relation(fields: [deviceId], references: [id], onDelete: SetNull)
+  statusUpdates StatusUpdate[]
+  uploads       UploadedFile[]
+  quotes        Quote[]
+  reminders     Reminder[]
+
+  @@index([trackingId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model StatusUpdate {
+  id           String     @id @default(cuid())
+  repairCaseId String
+  status       CaseStatus
+  publicNote   String?
+  internalNote String?
+  isPublic     Boolean    @default(true)
+  createdAt    DateTime   @default(now())
+
+  repairCase RepairCase @relation(fields: [repairCaseId], references: [id], onDelete: Cascade)
+
+  @@index([repairCaseId])
+  @@index([createdAt])
+}
+
+model UploadedFile {
+  id           String           @id @default(cuid())
+  repairCaseId String?
+  leadId       String?
+  filename     String
+  originalName String
+  mimeType     String
+  sizeBytes    Int
+  path         String
+  visibility   UploadVisibility @default(PRIVATE)
+  description  String?
+  createdAt    DateTime         @default(now())
+
+  repairCase RepairCase? @relation(fields: [repairCaseId], references: [id], onDelete: Cascade)
+  lead       Lead?       @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([repairCaseId])
+  @@index([leadId])
+}
+
+model Quote {
+  id           String    @id @default(cuid())
+  repairCaseId String
+  amount       Decimal?
+  currency     String    @default("RON")
+  description  String
+  approvedAt   DateTime?
+  rejectedAt   DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  repairCase RepairCase @relation(fields: [repairCaseId], references: [id], onDelete: Cascade)
+
+  @@index([repairCaseId])
+}
+
+model Reminder {
+  id           String         @id @default(cuid())
+  repairCaseId String?
+  customerId   String?
+  type         ReminderType
+  status       ReminderStatus @default(SCHEDULED)
+  scheduledFor DateTime
+  sentAt       DateTime?
+  subject      String?
+  message      String?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  repairCase RepairCase? @relation(fields: [repairCaseId], references: [id], onDelete: SetNull)
+
+  @@index([repairCaseId])
+  @@index([customerId])
+  @@index([scheduledFor])
+}
+
+model Lead {
+  id            String     @id @default(cuid())
+  trackingId    String     @unique
+  type          LeadType
+  status        LeadStatus @default(NEW)
+  customerId    String?
+  name          String?
+  email         String?
+  companyName   String?
+  projectUrl    String?
+  location      String?
+  message       String?
+  publicNotes   String?
+  internalNotes String?
+  metadata      Json?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  customer Customer?      @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  uploads  UploadedFile[]
+
+  @@index([trackingId])
+  @@index([type])
+  @@index([status])
+  @@index([createdAt])
+}
