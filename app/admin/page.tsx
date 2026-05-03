@@ -52,6 +52,7 @@ export default async function AdminPage() {
     scheduledReminderCount,
     emailLogCount,
     skippedEmailCount,
+    customerCount,
     latestRepairs,
     latestLeads,
     latestChangelog
@@ -80,6 +81,7 @@ export default async function AdminPage() {
     }),
     prisma.emailLog.count().catch(() => 0),
     prisma.emailLog.count({ where: { status: "SKIPPED" } }).catch(() => 0),
+    prisma.customer.count(),
     prisma.repairCase.findMany({
       orderBy: {
         createdAt: "desc"
@@ -128,6 +130,12 @@ export default async function AdminPage() {
       value: emailLogCount,
       detail: `${skippedEmailCount} skipped`,
       href: "/admin/email-logs"
+    },
+    {
+      label: "Customers",
+      value: customerCount,
+      detail: "internal records",
+      href: "/admin/customers"
     }
   ];
 
