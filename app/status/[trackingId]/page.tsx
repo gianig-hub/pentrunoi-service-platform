@@ -79,6 +79,10 @@ export default async function PublicTrackingPage({ params }: StatusPageProps) {
       quotes: {
         orderBy: { createdAt: "desc" },
         take: 1
+      },
+      uploads: {
+        where: { visibility: "PUBLIC" },
+        orderBy: { createdAt: "desc" }
       }
     }
   });
@@ -136,6 +140,35 @@ export default async function PublicTrackingPage({ params }: StatusPageProps) {
             </div>
           ) : null}
         </section>
+
+        {repairCase.uploads.length > 0 ? (
+          <section className="mt-8 rounded-2xl bg-white p-6 shadow-sm">
+            <h2 className="text-lg font-semibold text-slate-950">Fișiere publice</h2>
+            <div className="mt-5 grid gap-4 md:grid-cols-2">
+              {repairCase.uploads.map((file) => (
+                <article key={file.id} className="rounded-2xl border border-slate-200 p-4">
+                  {file.mimeType.startsWith("image/") ? (
+                    <img
+                      src={`/files/${file.id}`}
+                      alt={file.description || file.originalName}
+                      className="max-h-80 w-full rounded-xl object-cover"
+                    />
+                  ) : (
+                    <a
+                      href={`/files/${file.id}`}
+                      className="font-semibold text-slate-950 underline"
+                    >
+                      {file.originalName}
+                    </a>
+                  )}
+                  {file.description ? (
+                    <p className="mt-3 text-sm text-slate-700">{file.description}</p>
+                  ) : null}
+                </article>
+              ))}
+            </div>
+          </section>
+        ) : null}
 
         <section className="mt-8 rounded-2xl bg-white p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-slate-950">Actualizări publice</h2>
