@@ -6,9 +6,11 @@ export default function AdminPage() {
       <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
         Admin
       </p>
+
       <h1 className="mt-4 text-3xl font-bold tracking-tight text-slate-950">
         Pentrunoi admin dashboard
       </h1>
+
       <p className="mt-4 max-w-2xl text-slate-700">
         Zonă rezervată pentru dashboard, reparații, changelog și setări.
       </p>
@@ -23,7 +25,8 @@ export default function AdminPage() {
             Vezi istoricul de lucru, modificările și modulele dezvoltate.
           </p>
         </Link>
-        <a
+
+        <Link
           href="/admin/repairs"
           className="rounded-2xl bg-white p-5 shadow-sm transition hover:shadow-md"
         >
@@ -31,7 +34,7 @@ export default function AdminPage() {
           <p className="mt-2 text-sm text-slate-600">
             Vezi și actualizează cererile service primite.
           </p>
-        </a>
+        </Link>
       </div>
     </main>
   );
