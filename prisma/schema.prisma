@@ -142,6 +142,7 @@ model Customer {
 
   devices     Device[]
   repairCases RepairCase[]
+  reminders   Reminder[]
   leads       Lead[]
 
   @@index([email])
@@ -262,6 +263,7 @@ model Reminder {
   updatedAt    DateTime       @updatedAt
 
   repairCase RepairCase? @relation(fields: [repairCaseId], references: [id], onDelete: SetNull)
+  customer   Customer?   @relation(fields: [customerId], references: [id], onDelete: SetNull)
 
   @@index([repairCaseId])
   @@index([customerId])
