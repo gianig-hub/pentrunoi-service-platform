@@ -1,6 +1,9 @@
 import { LegalPage } from "@/components/LegalPage";
+import { getSiteSettings } from "@/lib/site-settings";
 
-export default function CourierTermsPage() {
+export default async function CourierTermsPage() {
+  const settings = await getSiteSettings();
+
   return (
     <LegalPage
       title="Termeni pentru reparații prin curier"
@@ -17,7 +20,7 @@ export default function CourierTermsPage() {
           title: "Transport",
           body: [
             "AWB-ul de intrare și AWB-ul de retur pot fi înregistrate în sistem pentru urmărirea lucrării.",
-            "Costurile de transport, asigurarea coletului și responsabilitatea în caz de deteriorare trebuie clarificate înainte de lansarea finală."
+            settings.courier_return_policy
           ]
         },
         {

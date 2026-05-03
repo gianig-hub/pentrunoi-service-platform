@@ -1,6 +1,9 @@
 import { LegalPage } from "@/components/LegalPage";
+import { getSiteSettings } from "@/lib/site-settings";
 
-export default function WarrantyPage() {
+export default async function WarrantyPage() {
+  const settings = await getSiteSettings();
+
   return (
     <LegalPage
       title="Garanție service"
@@ -9,13 +12,14 @@ export default function WarrantyPage() {
         {
           title: "Garanție pentru manoperă",
           body: [
-            "Perioada de garanție pentru manoperă trebuie stabilită în setările finale ale firmei.",
+            `Perioada de garanție pentru manoperă: ${settings.labour_warranty}.`,
             "Garanția se aplică doar lucrării efectuate și problemei confirmate în fișa de service."
           ]
         },
         {
           title: "Garanție pentru piese",
           body: [
+            `Condiții garanție piese: ${settings.parts_warranty}.`,
             "Piesele noi, second-hand sau recondiționate pot avea condiții diferite de garanție.",
             "Condițiile exacte trebuie comunicate clientului înainte de aprobarea lucrării."
           ]

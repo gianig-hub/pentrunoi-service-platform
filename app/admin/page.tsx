@@ -45,6 +45,16 @@ export default function AdminPage() {
             Gestionează cereri WEB, IT și NET primite prin formulare.
           </p>
         </Link>
+
+        <Link
+          href="/admin/settings"
+          className="rounded-2xl bg-white p-5 shadow-sm transition hover:shadow-md"
+        >
+          <h2 className="font-semibold text-slate-950">Settings</h2>
+          <p className="mt-2 text-sm text-slate-600">
+            Editează date companie, legal, garanții, curier și contact.
+          </p>
+        </Link>
       </div>
     </main>
   );

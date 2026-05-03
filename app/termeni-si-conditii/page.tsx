@@ -1,6 +1,9 @@
 import { LegalPage } from "@/components/LegalPage";
+import { getSiteSettings } from "@/lib/site-settings";
 
-export default function TermsPage() {
+export default async function TermsPage() {
+  const settings = await getSiteSettings();
+
   return (
     <LegalPage
       title="Termeni și condiții"
@@ -18,6 +21,19 @@ export default function TermsPage() {
           body: [
             "Trimiterea unei cereri nu înseamnă acceptarea automată a unei reparații.",
             "După diagnosticare, clientul poate primi un deviz estimativ. Reparația se efectuează doar după confirmare, atunci când este necesară aprobarea clientului."
+          ]
+        },
+        {
+          title: "Responsabilitate date",
+          body: [
+            settings.data_backup_warning,
+            "Pentru recuperare de date, clientul trebuie să menționeze clar acest lucru în formular."
+          ]
+        },
+        {
+          title: "Echipamente neridicate",
+          body: [
+            settings.abandoned_device_policy
           ]
         },
         {

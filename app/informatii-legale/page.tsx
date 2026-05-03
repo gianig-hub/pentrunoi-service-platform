@@ -1,6 +1,9 @@
 import { LegalPage } from "@/components/LegalPage";
+import { getSiteSettings } from "@/lib/site-settings";
 
-export default function LegalInfoPage() {
+export default async function LegalInfoPage() {
+  const settings = await getSiteSettings();
+
   return (
     <LegalPage
       title="Informații legale"
@@ -9,20 +12,21 @@ export default function LegalInfoPage() {
         {
           title: "Date companie",
           body: [
-            "Denumire: SERVICE LAPTOP GIANI S.R.L.",
-            "CUI: 43422556.",
-            "Nr. Registrul Comerțului: J29/2332/2020.",
-            "EUID: ROONRC.J29/2332/2020.",
-            "Sediu social: Ploiești, Str. Văleni, Nr. 67, Et. Parter, județ Prahova.",
-            "Email public: contact@pentrunoi.ro.",
-            "Telefon: [opțional / de completat dacă este necesar legal]."
+            `Denumire: ${settings.company_name}.`,
+            `CUI: ${settings.company_cui}.`,
+            `Nr. Registrul Comerțului: ${settings.company_reg_com}.`,
+            `EUID: ${settings.company_euid}.`,
+            `Sediu social: ${settings.registered_address}.`,
+            `Email public: ${settings.public_email}.`,
+            `Telefon: ${settings.legal_phone_placeholder}.`,
+            `Status TVA: ${settings.vat_status}.`
           ]
         },
         {
           title: "Contact principal",
           body: [
             "Pentru proiectul nou, contactul principal se face prin formularele disponibile pe website.",
-            "Nu folosim telefonul ca principal call-to-action pe paginile de marketing."
+            settings.no_phone_cta_note
           ]
         },
         {
