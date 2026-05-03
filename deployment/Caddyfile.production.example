@@ -1,0 +1,14 @@
+www.pentrunoi.ro {
+    redir https://pentrunoi.ro{uri} permanent
+}
+
+pentrunoi.ro {
+    encode gzip zstd
+
+    @admin path /admin*
+    basic_auth @admin {
+        devadmin CHANGE_WITH_CADDY_HASH
+    }
+
+    reverse_proxy pentrunoi_prod_app:3000
+}
