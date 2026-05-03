@@ -48,8 +48,10 @@ function textValue(formData: FormData, key: string) {
 export default async function AdminRepairDetailPage({ params }: PageProps) {
   const { id } = await params;
 
-  const repair = await prisma.repairCase.findUnique({
-    where: { id },
+  const repair = await prisma.repairCase.findFirst({
+    where: {
+      OR: [{ id }, { trackingId: id }]
+    },
     include: {
       customer: true,
       device: true,

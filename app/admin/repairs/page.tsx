@@ -114,7 +114,7 @@ export default async function AdminRepairsPage() {
                   <td className="p-4">{formatDate(repair.createdAt)}</td>
                   <td className="p-4">
                     <Link
-                      href={`/admin/repairs/${repair.id}`}
+                      href={`/admin/repairs/${repair.trackingId}`}
                       className="rounded-lg bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-900"
                     >
                       Deschide

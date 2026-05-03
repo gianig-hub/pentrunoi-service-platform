@@ -45,8 +45,10 @@ function textValue(formData: FormData, key: string) {
 export default async function RepairUploadsPage({ params }: PageProps) {
   const { id } = await params;
 
-  const repair = await prisma.repairCase.findUnique({
-    where: { id },
+  const repair = await prisma.repairCase.findFirst({
+    where: {
+      OR: [{ id }, { trackingId: id }]
+    },
     include: {
       customer: true,
       uploads: {
@@ -125,7 +127,7 @@ export default async function RepairUploadsPage({ params }: PageProps) {
 
   return (
     <main className="mx-auto max-w-6xl px-6 py-12">
-      <Link href={`/admin/repairs/${repair.id}`} className="text-sm font-medium text-slate-600">
+      <Link href={`/admin/repairs/${repair.trackingId}`} className="text-sm font-medium text-slate-600">
         ← Back to repair case
       </Link>
 
