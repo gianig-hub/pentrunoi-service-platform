@@ -1,46 +1,94 @@
-export default function StatusPage() {
+import type { Metadata } from "next";
+import { redirect } from "next/navigation";
+
+export const metadata: Metadata = {
+  title: "Verifică status cerere",
+  description:
+    "Verifică statusul unei reparații sau cereri folosind codul unic de tracking primit."
+};
+
+function cleanTrackingCode(value: FormDataEntryValue | null) {
+  if (typeof value !== "string") {
+    return "";
+  }
+
+  return value.trim().toUpperCase();
+}
+
+async function lookupStatus(formData: FormData) {
+  "use server";
+
+  const trackingId = cleanTrackingCode(formData.get("trackingId"));
+
+  if (!trackingId) {
+    redirect("/status");
+  }
+
+  redirect(`/status/${encodeURIComponent(trackingId)}`);
+}
+
+export default function StatusLookupPage() {
   return (
-    <main className="mx-auto max-w-3xl px-6 py-16">
-      <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-        Status lucrare
-      </p>
+    <main>
+      <section className="bg-slate-950">
+        <div className="mx-auto max-w-5xl px-6 py-16 lg:py-20">
+          <p className="text-sm font-semibold uppercase tracking-wide text-slate-300">
+            Status tracking
+          </p>
+          <h1 className="mt-4 max-w-4xl text-4xl font-bold tracking-tight text-white sm:text-5xl">
+            Verifică statusul unei reparații sau cereri.
+          </h1>
+          <p className="mt-5 max-w-3xl text-lg leading-8 text-slate-300">
+            Introdu codul primit după trimiterea formularului. Nu ai nevoie de cont client.
+            Codurile pot începe cu REP, WEB, IT sau NET.
+          </p>
+        </div>
+      </section>
 
-      <h1 className="mt-4 text-3xl font-bold tracking-tight text-slate-950">
-        Verifică statusul reparației sau cererii
-      </h1>
+      <section className="mx-auto max-w-5xl px-6 py-14">
+        <div className="rounded-3xl bg-white p-8 shadow-sm">
+          <form action={lookupStatus} className="grid gap-4 md:grid-cols-[1fr_auto]">
+            <div>
+              <label htmlFor="trackingId" className="block text-sm font-semibold text-slate-950">
+                Cod tracking
+              </label>
+              <input
+                id="trackingId"
+                name="trackingId"
+                required
+                placeholder="Ex: REP-2026-XXXXX"
+                className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 text-lg font-semibold uppercase tracking-wide outline-none focus:border-slate-950"
+              />
+            </div>
 
-      <p className="mt-4 text-slate-700">
-        Introdu codul unic primit pe email pentru a vedea statusul actual.
-        Nu este nevoie de cont client.
-      </p>
+            <button
+              type="submit"
+              className="self-end rounded-xl bg-slate-950 px-6 py-4 text-sm font-semibold text-white"
+            >
+              Verifică status
+            </button>
+          </form>
 
-      <form action="/status/lookup" className="mt-8 rounded-2xl bg-white p-6 shadow-sm">
-        <label htmlFor="trackingId" className="block text-sm font-medium text-slate-700">
-          Cod tracking
-        </label>
+          <div className="mt-8 grid gap-4 md:grid-cols-3">
+            {[
+              ["REP", "Reparații laptop/calculator"],
+              ["WEB", "Proiecte web și aplicații"],
+              ["IT", "Suport IT firme"],
+              ["NET", "Conectivitate business"]
+            ].map(([prefix, label]) => (
+              <div key={prefix} className="rounded-2xl bg-slate-50 p-5">
+                <p className="text-lg font-bold text-slate-950">{prefix}</p>
+                <p className="mt-1 text-sm text-slate-600">{label}</p>
+              </div>
+            ))}
+          </div>
 
-        <input
-          id="trackingId"
-          name="trackingId"
-          type="text"
-          placeholder="Exemplu: REP-2026-8F4K2Q"
-          required
-          className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-950 outline-none focus:border-slate-900"
-        />
-
-        <button
-          type="submit"
-          className="mt-4 rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white"
-        >
-          Verifică statusul
-        </button>
-      </form>
-
-      <div className="mt-8 rounded-2xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-700">
-        Din motive de confidențialitate, pagina de status afișează doar informații
-        generale despre lucrare sau cerere. Datele personale, notele interne și
-        detaliile sensibile nu sunt afișate public.
-      </div>
+          <div className="mt-8 rounded-2xl bg-amber-50 p-5 text-sm leading-6 text-amber-900">
+            Această pagină afișează doar informații publice despre status. Datele personale,
+            notele interne, telefonul, adresa și detaliile sensibile nu sunt afișate.
+          </div>
+        </div>
+      </section>
     </main>
   );
 }

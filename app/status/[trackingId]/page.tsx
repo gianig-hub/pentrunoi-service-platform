@@ -11,6 +11,20 @@ type StatusPageProps = {
   }>;
 };
 
+const repairSteps = [
+  "REQUEST_RECEIVED",
+  "WAITING_FOR_DEVICE",
+  "DEVICE_RECEIVED",
+  "DIAGNOSIS_IN_PROGRESS",
+  "QUOTE_SENT",
+  "APPROVED",
+  "IN_REPAIR",
+  "TESTING",
+  "READY_FOR_RETURN",
+  "SENT_TO_CUSTOMER",
+  "COMPLETED"
+];
+
 function formatDate(date: Date) {
   return new Intl.DateTimeFormat("ro-RO", {
     dateStyle: "medium",
@@ -72,6 +86,36 @@ function canDecideQuote(quote: {
   return !quote.approvedAt && !quote.rejectedAt;
 }
 
+function progressPercent(status: string) {
+  if (status === "REJECTED" || status === "CLOSED") {
+    return 100;
+  }
+
+  const index = repairSteps.indexOf(status);
+
+  if (index < 0) {
+    return 10;
+  }
+
+  return Math.max(8, Math.round(((index + 1) / repairSteps.length) * 100));
+}
+
+function statusTone(status: string) {
+  if (status === "COMPLETED" || status === "APPROVED" || status === "SENT_TO_CUSTOMER") {
+    return "bg-emerald-50 text-emerald-800";
+  }
+
+  if (status === "REJECTED" || status === "CLOSED") {
+    return "bg-red-50 text-red-800";
+  }
+
+  if (status === "QUOTE_SENT" || status === "WAITING_FOR_APPROVAL") {
+    return "bg-amber-50 text-amber-800";
+  }
+
+  return "bg-sky-50 text-sky-800";
+}
+
 export default async function PublicTrackingPage({ params }: StatusPageProps) {
   const { trackingId: rawTrackingId } = await params;
   const trackingId = decodeURIComponent(rawTrackingId).trim().toUpperCase();
@@ -82,7 +126,7 @@ export default async function PublicTrackingPage({ params }: StatusPageProps) {
       statusUpdates: {
         where: { isPublic: true },
         orderBy: { createdAt: "desc" },
-        take: 5
+        take: 8
       },
       quotes: {
         orderBy: { createdAt: "desc" },
@@ -100,6 +144,7 @@ export default async function PublicTrackingPage({ params }: StatusPageProps) {
     const repairCaseId = repairCase.id;
     const quoteId = latestQuote?.id || "";
     const publicTrackingId = repairCase.trackingId;
+    const percent = progressPercent(repairCase.status);
 
     async function approveQuote() {
       "use server";
@@ -208,71 +253,108 @@ export default async function PublicTrackingPage({ params }: StatusPageProps) {
     }
 
     return (
-      <main className="mx-auto max-w-4xl px-6 py-16">
-        <Link href="/status" className="text-sm font-medium text-slate-600">
-          ← Verifică alt cod
-        </Link>
+      <main>
+        <section className="bg-slate-950">
+          <div className="mx-auto max-w-5xl px-6 py-14">
+            <Link href="/status" className="text-sm font-medium text-slate-300">
+              ← Verifică alt cod
+            </Link>
 
-        <p className="mt-8 text-sm font-semibold uppercase tracking-wide text-slate-500">
-          Status reparație
-        </p>
+            <div className="mt-8 flex flex-wrap items-start justify-between gap-6">
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-wide text-slate-300">
+                  Status reparație
+                </p>
+                <h1 className="mt-3 text-4xl font-bold tracking-tight text-white">
+                  {repairCase.trackingId}
+                </h1>
+              </div>
 
-        <h1 className="mt-4 text-3xl font-bold tracking-tight text-slate-950">
-          {repairCase.trackingId}
-        </h1>
-
-        <section className="mt-8 rounded-2xl bg-white p-6 shadow-sm">
-          <div className="grid gap-6 sm:grid-cols-2">
-            <div>
-              <p className="text-sm text-slate-500">Status actual</p>
-              <p className="mt-1 text-xl font-semibold text-slate-950">
+              <span className={`rounded-full px-4 py-2 text-sm font-semibold ${statusTone(repairCase.status)}`}>
                 {humanRepairStatus(repairCase.status)}
-              </p>
-            </div>
-
-            <div>
-              <p className="text-sm text-slate-500">Ultima actualizare</p>
-              <p className="mt-1 font-medium text-slate-950">
-                {formatDate(repairCase.updatedAt)}
-              </p>
+              </span>
             </div>
           </div>
+        </section>
 
-          {repairCase.publicNotes ? (
-            <div className="mt-6 rounded-xl bg-slate-50 p-4">
-              <p className="text-sm text-slate-500">Notă publică</p>
-              <p className="mt-1 text-slate-800">{repairCase.publicNotes}</p>
+        <section className="mx-auto max-w-5xl px-6 py-12">
+          <div className="rounded-3xl bg-white p-8 shadow-sm">
+            <div className="grid gap-6 sm:grid-cols-2">
+              <div>
+                <p className="text-sm text-slate-500">Status actual</p>
+                <p className="mt-1 text-2xl font-bold text-slate-950">
+                  {humanRepairStatus(repairCase.status)}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-sm text-slate-500">Ultima actualizare</p>
+                <p className="mt-1 font-semibold text-slate-950">
+                  {formatDate(repairCase.updatedAt)}
+                </p>
+              </div>
             </div>
-          ) : null}
+
+            <div className="mt-8">
+              <div className="flex items-center justify-between text-xs font-semibold text-slate-500">
+                <span>Progres lucrare</span>
+                <span>{percent}%</span>
+              </div>
+              <div className="mt-2 h-3 overflow-hidden rounded-full bg-slate-100">
+                <div
+                  className="h-full rounded-full bg-slate-950"
+                  style={{ width: `${percent}%` }}
+                />
+              </div>
+            </div>
+
+            {repairCase.publicNotes ? (
+              <div className="mt-8 rounded-2xl bg-slate-50 p-5">
+                <p className="text-sm font-semibold text-slate-500">Notă publică</p>
+                <p className="mt-2 leading-7 text-slate-800">{repairCase.publicNotes}</p>
+              </div>
+            ) : null}
+          </div>
 
           {latestQuote ? (
-            <div className="mt-6 rounded-xl border border-slate-200 p-4">
-              <p className="text-sm text-slate-500">Deviz</p>
-              <p className="mt-1 whitespace-pre-wrap text-slate-800">
+            <section className="mt-8 rounded-3xl bg-white p-8 shadow-sm">
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                  <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+                    Deviz
+                  </p>
+                  <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-950">
+                    Devizul cel mai recent
+                  </h2>
+                </div>
+
+                {latestQuote.amount ? (
+                  <p className="rounded-2xl bg-slate-950 px-5 py-3 text-lg font-bold text-white">
+                    {latestQuote.amount.toString()} {latestQuote.currency}
+                  </p>
+                ) : null}
+              </div>
+
+              <p className="mt-5 whitespace-pre-wrap leading-7 text-slate-800">
                 {latestQuote.description}
               </p>
 
-              {latestQuote.amount ? (
-                <p className="mt-2 font-semibold text-slate-950">
-                  {latestQuote.amount.toString()} {latestQuote.currency}
-                </p>
-              ) : null}
-
               {latestQuote.approvedAt ? (
-                <div className="mt-4 rounded-xl bg-emerald-50 p-4 text-sm text-emerald-900">
+                <div className="mt-6 rounded-2xl bg-emerald-50 p-5 text-sm text-emerald-900">
                   Deviz aprobat la {formatDate(latestQuote.approvedAt)}.
                 </div>
               ) : latestQuote.rejectedAt ? (
-                <div className="mt-4 rounded-xl bg-red-50 p-4 text-sm text-red-900">
+                <div className="mt-6 rounded-2xl bg-red-50 p-5 text-sm text-red-900">
                   Deviz refuzat la {formatDate(latestQuote.rejectedAt)}.
                 </div>
               ) : canDecideQuote(latestQuote) ? (
-                <div className="mt-5 rounded-xl bg-amber-50 p-4">
-                  <p className="text-sm text-amber-900">
+                <div className="mt-6 rounded-2xl bg-amber-50 p-5">
+                  <p className="text-sm leading-6 text-amber-900">
                     Te rugăm să verifici devizul. Poți aproba sau refuza direct de aici.
+                    După alegere, statusul lucrării se actualizează automat.
                   </p>
 
-                  <div className="mt-4 flex flex-wrap gap-3">
+                  <div className="mt-5 flex flex-wrap gap-3">
                     <form action={approveQuote}>
                       <button
                         type="submit"
@@ -293,65 +375,79 @@ export default async function PublicTrackingPage({ params }: StatusPageProps) {
                   </div>
                 </div>
               ) : null}
-            </div>
+            </section>
           ) : null}
-        </section>
 
-        {repairCase.uploads.length > 0 ? (
-          <section className="mt-8 rounded-2xl bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-slate-950">Fișiere publice</h2>
-            <div className="mt-5 grid gap-4 md:grid-cols-2">
-              {repairCase.uploads.map((file) => (
-                <article key={file.id} className="rounded-2xl border border-slate-200 p-4">
-                  {file.mimeType.startsWith("image/") ? (
-                    <img
-                      src={`/files/${file.id}`}
-                      alt={file.description || file.originalName}
-                      className="max-h-80 w-full rounded-xl object-cover"
-                    />
-                  ) : (
-                    <a href={`/files/${file.id}`} className="font-semibold text-slate-950 underline">
-                      {file.originalName}
-                    </a>
-                  )}
+          {repairCase.uploads.length > 0 ? (
+            <section className="mt-8 rounded-3xl bg-white p-8 shadow-sm">
+              <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+                Fișiere publice
+              </p>
+              <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-950">
+                Poze sau documente vizibile clientului
+              </h2>
 
-                  {file.description ? (
-                    <p className="mt-3 text-sm text-slate-700">{file.description}</p>
-                  ) : null}
-                </article>
-              ))}
-            </div>
-          </section>
-        ) : null}
+              <div className="mt-6 grid gap-4 md:grid-cols-2">
+                {repairCase.uploads.map((file) => (
+                  <article key={file.id} className="rounded-2xl border border-slate-200 p-4">
+                    {file.mimeType.startsWith("image/") ? (
+                      <img
+                        src={`/files/${file.id}`}
+                        alt={file.description || file.originalName}
+                        className="max-h-80 w-full rounded-xl object-cover"
+                      />
+                    ) : (
+                      <Link
+                        href={`/files/${file.id}`}
+                        className="font-semibold text-slate-950 underline"
+                      >
+                        {file.originalName}
+                      </Link>
+                    )}
 
-        <section className="mt-8 rounded-2xl bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-slate-950">Actualizări publice</h2>
+                    {file.description ? (
+                      <p className="mt-3 text-sm leading-6 text-slate-700">{file.description}</p>
+                    ) : null}
+                  </article>
+                ))}
+              </div>
+            </section>
+          ) : null}
 
-          {repairCase.statusUpdates.length === 0 ? (
-            <p className="mt-3 text-sm text-slate-600">
-              Nu există actualizări publice încă.
+          <section className="mt-8 rounded-3xl bg-white p-8 shadow-sm">
+            <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+              Timeline
             </p>
-          ) : (
-            <div className="mt-4 space-y-4">
-              {repairCase.statusUpdates.map((update) => (
-                <div key={update.id} className="border-l-2 border-slate-200 pl-4">
-                  <p className="font-medium text-slate-950">
-                    {humanRepairStatus(update.status)}
-                  </p>
-                  <p className="text-xs text-slate-500">{formatDate(update.createdAt)}</p>
-                  {update.publicNote ? (
-                    <p className="mt-1 text-sm text-slate-700">{update.publicNote}</p>
-                  ) : null}
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
+            <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-950">
+              Actualizări publice
+            </h2>
 
-        <p className="mt-8 text-sm text-slate-500">
-          Această pagină afișează doar informații publice despre status. Datele
-          personale, adresa, telefonul, notele interne și detaliile sensibile nu sunt afișate.
-        </p>
+            {repairCase.statusUpdates.length === 0 ? (
+              <p className="mt-4 text-sm text-slate-600">
+                Nu există actualizări publice încă.
+              </p>
+            ) : (
+              <div className="mt-6 space-y-5">
+                {repairCase.statusUpdates.map((update) => (
+                  <div key={update.id} className="border-l-2 border-slate-200 pl-5">
+                    <p className="font-semibold text-slate-950">
+                      {humanRepairStatus(update.status)}
+                    </p>
+                    <p className="mt-1 text-xs text-slate-500">{formatDate(update.createdAt)}</p>
+                    {update.publicNote ? (
+                      <p className="mt-2 text-sm leading-6 text-slate-700">{update.publicNote}</p>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+
+          <section className="mt-8 rounded-3xl bg-slate-950 p-6 text-sm leading-6 text-slate-300">
+            Această pagină afișează doar informații publice despre status. Datele personale,
+            adresa, telefonul, notele interne și detaliile sensibile nu sunt afișate.
+          </section>
+        </section>
       </main>
     );
   }
@@ -362,55 +458,68 @@ export default async function PublicTrackingPage({ params }: StatusPageProps) {
 
   if (lead) {
     return (
-      <main className="mx-auto max-w-4xl px-6 py-16">
-        <Link href="/status" className="text-sm font-medium text-slate-600">
-          ← Verifică alt cod
-        </Link>
+      <main>
+        <section className="bg-slate-950">
+          <div className="mx-auto max-w-5xl px-6 py-14">
+            <Link href="/status" className="text-sm font-medium text-slate-300">
+              ← Verifică alt cod
+            </Link>
 
-        <p className="mt-8 text-sm font-semibold uppercase tracking-wide text-slate-500">
-          Status cerere
-        </p>
+            <div className="mt-8 flex flex-wrap items-start justify-between gap-6">
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-wide text-slate-300">
+                  Status cerere
+                </p>
+                <h1 className="mt-3 text-4xl font-bold tracking-tight text-white">
+                  {lead.trackingId}
+                </h1>
+              </div>
 
-        <h1 className="mt-4 text-3xl font-bold tracking-tight text-slate-950">
-          {lead.trackingId}
-        </h1>
-
-        <section className="mt-8 rounded-2xl bg-white p-6 shadow-sm">
-          <div className="grid gap-6 sm:grid-cols-2">
-            <div>
-              <p className="text-sm text-slate-500">Tip cerere</p>
-              <p className="mt-1 text-xl font-semibold text-slate-950">
-                {humanLeadType(lead.type)}
-              </p>
-            </div>
-
-            <div>
-              <p className="text-sm text-slate-500">Status actual</p>
-              <p className="mt-1 text-xl font-semibold text-slate-950">
+              <span className="rounded-full bg-sky-50 px-4 py-2 text-sm font-semibold text-sky-800">
                 {humanLeadStatus(lead.status)}
-              </p>
-            </div>
-
-            <div>
-              <p className="text-sm text-slate-500">Ultima actualizare</p>
-              <p className="mt-1 font-medium text-slate-950">
-                {formatDate(lead.updatedAt)}
-              </p>
+              </span>
             </div>
           </div>
-
-          {lead.publicNotes ? (
-            <div className="mt-6 rounded-xl bg-slate-50 p-4">
-              <p className="text-sm text-slate-500">Notă publică</p>
-              <p className="mt-1 text-slate-800">{lead.publicNotes}</p>
-            </div>
-          ) : null}
         </section>
 
-        <p className="mt-8 text-sm text-slate-500">
-          Această pagină afișează doar informații publice despre status. Datele
-          personale, notele interne și detaliile sensibile nu sunt afișate.
-        </p>
+        <section className="mx-auto max-w-5xl px-6 py-12">
+          <div className="rounded-3xl bg-white p-8 shadow-sm">
+            <div className="grid gap-6 sm:grid-cols-3">
+              <div>
+                <p className="text-sm text-slate-500">Tip cerere</p>
+                <p className="mt-1 text-xl font-bold text-slate-950">
+                  {humanLeadType(lead.type)}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-sm text-slate-500">Status actual</p>
+                <p className="mt-1 text-xl font-bold text-slate-950">
+                  {humanLeadStatus(lead.status)}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-sm text-slate-500">Ultima actualizare</p>
+                <p className="mt-1 font-semibold text-slate-950">
+                  {formatDate(lead.updatedAt)}
+                </p>
+              </div>
+            </div>
+
+            {lead.publicNotes ? (
+              <div className="mt-8 rounded-2xl bg-slate-50 p-5">
+                <p className="text-sm font-semibold text-slate-500">Notă publică</p>
+                <p className="mt-2 leading-7 text-slate-800">{lead.publicNotes}</p>
+              </div>
+            ) : null}
+          </div>
+
+          <section className="mt-8 rounded-3xl bg-slate-950 p-6 text-sm leading-6 text-slate-300">
+            Această pagină afișează doar informații publice despre status. Datele personale,
+            notele interne și detaliile sensibile nu sunt afișate.
+          </section>
+        </section>
       </main>
     );
   }
