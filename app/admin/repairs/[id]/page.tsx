@@ -135,12 +135,21 @@ export default async function AdminRepairDetailPage({ params }: PageProps) {
           </p>
         </div>
 
-        <Link
-          href={`/admin/repairs/${repair.trackingId}/print`}
-          className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-950"
-        >
-          Print job card
-        </Link>
+        <div className="flex flex-wrap gap-3">
+          <Link
+            href={`/admin/repairs/${repair.trackingId}/print`}
+            className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-950"
+          >
+            Print job card
+          </Link>
+
+          <Link
+            href={`/admin/repairs/${repair.trackingId}/completion`}
+            className="rounded-xl bg-slate-950 px-4 py-2 text-sm font-semibold text-white"
+          >
+            Completion report
+          </Link>
+        </div>
       </div>
 
       <div className="mt-8 grid gap-6 lg:grid-cols-3">
