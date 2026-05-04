@@ -1,56 +1,55 @@
-import { PublicPage } from "@/components/PublicPage";
+import type { Metadata } from "next";
+import { MarketingPage } from "@/components/MarketingPage";
+
+export const metadata: Metadata = {
+  title: "Service laptop Ploiești",
+  description:
+    "Service laptop în Ploiești: diagnosticare, curățare, upgrade SSD/RAM, display, tastatură, baterie, temperaturi și reparații prin curier."
+};
 
 export default function LaptopServicePage() {
   return (
-    <PublicPage
+    <MarketingPage
       eyebrow="Service laptop Ploiești"
-      title="Service laptop în Ploiești și reparații prin curier"
-      intro="Oferim servicii pentru laptopuri folosite acasă, la birou sau în firmă: diagnosticare, curățare internă, verificare temperaturi, upgrade SSD/RAM, înlocuire display, tastatură, baterie, mufă alimentare și depanare software."
+      title="Service laptop în Ploiești, cu tracking online și deviz clar."
+      intro="Diagnosticăm și reparăm laptopuri pentru acasă, birou sau firmă. Cererea se trimite prin formular, primești cod de tracking, iar statusul lucrării poate fi verificat online fără cont client."
       primaryHref="/cerere-service"
       primaryLabel="Trimite cerere service"
-      secondaryHref="/status"
-      secondaryLabel="Verifică status"
-      features={[
-        {
-          title: "Diagnosticare",
-          description: "Verificăm simptomele, componentele principale, temperaturile, stocarea, memoria și comportamentul sistemului."
-        },
-        {
-          title: "Curățare și mentenanță",
-          description: "Curățare praf, verificare sistem de răcire și recomandări pentru prevenirea supraîncălzirii."
-        },
-        {
-          title: "Upgrade laptop",
-          description: "Montare SSD, upgrade RAM, reinstalare sistem și optimizare pentru utilizare mai rapidă."
-        },
-        {
-          title: "Display, tastatură, baterie",
-          description: "Înlocuire componente defecte în funcție de model, disponibilitate piese și confirmarea clientului."
-        },
-        {
-          title: "Service prin curier",
-          description: "Pentru clienții din afara zonei, echipamentul poate fi trimis prin curier și urmărit cu tracking ID."
-        },
-        {
-          title: "Jurnal reparație",
-          description: "Fiecare lucrare poate avea istoric, statusuri, note, devize și recomandări de mentenanță."
-        }
+      secondaryHref="/reparatii-laptop-prin-curier"
+      secondaryLabel="Reparații prin curier"
+      highlights={[
+        { title: "Diagnosticare", description: "Verificare simptome, temperaturi, stocare, memorie, alimentare și funcționare." },
+        { title: "Curățare internă", description: "Curățare praf, verificare răcire și recomandări pentru temperaturi mai bune." },
+        { title: "Upgrade", description: "SSD, RAM, reinstalare sistem și optimizare pentru viteză." },
+        { title: "Tracking online", description: "Fiecare lucrare primește cod unic și status public." }
       ]}
-      sections={[
-        {
-          title: "Cum lucrăm",
-          body: [
-            "Clientul trimite o cerere prin formular. Sistemul generează un cod unic de tracking.",
-            "După verificare, lucrarea este actualizată în admin, iar clientul poate vedea statusul fără cont."
-          ]
-        },
-        {
-          title: "Important despre date",
-          body: [
-            "Recomandăm backup pentru datele importante înainte de predarea echipamentului, dacă acest lucru este posibil.",
-            "Pentru recuperare de date, clientul trebuie să menționeze clar problema în formular."
-          ]
-        }
+      problems={[
+        { title: "Laptop lent", description: "Verificăm SSD/HDD, RAM, temperaturi, programe la startup și starea sistemului." },
+        { title: "Se încălzește sau se oprește", description: "Analizăm răcirea, ventilatorul, pasta termoconductoare și acumularea de praf." },
+        { title: "Display spart", description: "Identificăm modelul compatibil și pregătim deviz în funcție de disponibilitatea piesei." },
+        { title: "Tastatură defectă", description: "Verificăm modelul, layout-ul, conexiunea și opțiunile de înlocuire." },
+        { title: "Nu pornește", description: "Verificăm alimentatorul, placa, bateria, mufa de încărcare și componentele principale." },
+        { title: "Probleme software", description: "Reinstalare, drivere, erori Windows, devirusare și configurare pentru utilizare normală." }
+      ]}
+      steps={[
+        { title: "1. Cerere online", description: "Completezi datele și descrii problema cât mai clar." },
+        { title: "2. Tracking ID", description: "Primești un cod pentru statusul lucrării." },
+        { title: "3. Diagnosticare", description: "Verificăm echipamentul și adăugăm actualizări în admin." },
+        { title: "4. Deviz și aprobare", description: "Clientul vede devizul și poate aproba sau refuza online." }
+      ]}
+      trustItems={[
+        "Fără cont client",
+        "Status tracking public",
+        "Poze publice/private",
+        "Deviz cu aprobare",
+        "Raport printabil",
+        "Remindere pentru mentenanță"
+      ]}
+      faqs={[
+        { question: "Trebuie să îmi fac cont?", answer: "Nu. Pentru service primești un cod unic de tracking și poți verifica statusul fără cont." },
+        { question: "Pot trimite laptopul prin curier?", answer: "Da. Fluxul de curier este pregătit pentru recepție, tracking, deviz și retur." },
+        { question: "Se face reparația fără acordul meu?", answer: "Nu pentru lucrările care necesită deviz. Devizul poate fi aprobat sau refuzat online." },
+        { question: "Datele mele sunt în siguranță?", answer: "Recomandăm backup înainte de predare dacă laptopul pornește. Pentru recuperare date trebuie menționat clar în formular." }
       ]}
     />
   );
