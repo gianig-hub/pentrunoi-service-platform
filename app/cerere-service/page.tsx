@@ -83,42 +83,92 @@ async function createRepairRequest(formData: FormData) {
     }
   });
 
-  const statusUrl = `/status/${repairCase.trackingId}`;
+  const statusPath = `/status/${repairCase.trackingId}`;
+  const publicSiteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://pentrunoi.ro";
+  const statusUrl = new URL(statusPath, publicSiteUrl).toString();
+
+  const deviceLabel = [deviceType, brand, model].filter(Boolean).join(" ");
 
   await sendEmail({
     to: email,
-    subject: `Cerere service primită - ${repairCase.trackingId}`,
+    subject: `Am primit cererea ta de service - ${repairCase.trackingId}`,
     text: [
       `Bună, ${name},`,
       "",
-      "Cererea ta de service a fost primită.",
+      "Îți mulțumim. Cererea ta de service a fost primită și înregistrată în sistemul Pentrunoi.ro.",
+      "",
+      "━━━━━━━━━━━━━━━━━━━━",
+      "DETALII CERERE",
+      "━━━━━━━━━━━━━━━━━━━━",
       `Cod tracking: ${repairCase.trackingId}`,
-      `Status online: ${statusUrl}`,
+      `Echipament: ${deviceLabel || deviceType}`,
+      `Status inițial: Cerere primită`,
       "",
-      "Poți urmări statusul folosind codul primit, fără cont client.",
+      "Poți verifica statusul lucrării aici:",
+      statusUrl,
       "",
-      "Pentrunoi.ro"
+      "Nu ai nevoie de cont client. Codul de tracking este suficient pentru a vedea actualizările publice.",
+      "",
+      "━━━━━━━━━━━━━━━━━━━━",
+      "CE URMEAZĂ",
+      "━━━━━━━━━━━━━━━━━━━━",
+      courierRequested === "yes"
+        ? "1. Verificăm detaliile cererii și pregătim pașii pentru trimiterea prin curier."
+        : "1. Verificăm detaliile cererii și confirmăm următorul pas pentru recepția echipamentului.",
+      "2. După diagnosticare, dacă este nevoie, vei primi un deviz.",
+      "3. Devizul poate fi aprobat sau refuzat online, din pagina de status.",
+      "4. Pe pagina de status pot apărea doar informații publice: status, note publice, deviz și fișiere marcate public.",
+      "",
+      "Important: dacă echipamentul pornește, recomandăm backup pentru datele importante înainte de predare/trimitere.",
+      "",
+      "Cu respect,",
+      "Pentrunoi.ro",
+      "Service Laptop Giani",
+      "",
+      "Acest email a fost trimis automat pentru cererea ta de service."
     ].join("\n")
   });
 
   await sendEmail({
     to: getAdminEmail(),
     replyTo: email,
-    subject: `Cerere service nouă - ${repairCase.trackingId}`,
+    subject: `Cerere service nouă - ${repairCase.trackingId} - ${name}`,
     text: [
-      "Cerere service nouă.",
-      `Tracking: ${repairCase.trackingId}`,
-      `Client: ${name}`,
+      "Cerere service nouă primită pe Pentrunoi.ro.",
+      "",
+      "━━━━━━━━━━━━━━━━━━━━",
+      "CLIENT",
+      "━━━━━━━━━━━━━━━━━━━━",
+      `Nume: ${name}`,
       `Email: ${email}`,
       `Telefon: ${phone || "N/A"}`,
-      `Echipament: ${deviceType} ${brand} ${model}`,
+      `Oraș/Județ: ${[city, county].filter(Boolean).join(", ") || "N/A"}`,
       "",
-      "Problemă:",
-      issueReported
+      "━━━━━━━━━━━━━━━━━━━━",
+      "ECHIPAMENT",
+      "━━━━━━━━━━━━━━━━━━━━",
+      `Tip: ${deviceType}`,
+      `Brand: ${brand || "N/A"}`,
+      `Model: ${model || "N/A"}`,
+      `Serie/SN: ${serialNumber || "N/A"}`,
+      `Curier solicitat: ${courierRequested === "yes" ? "DA" : "NU"}`,
+      "",
+      "━━━━━━━━━━━━━━━━━━━━",
+      "PROBLEMĂ RAPORTATĂ",
+      "━━━━━━━━━━━━━━━━━━━━",
+      issueReported,
+      "",
+      "━━━━━━━━━━━━━━━━━━━━",
+      "LINKURI RAPIDE",
+      "━━━━━━━━━━━━━━━━━━━━",
+      `Admin: ${publicSiteUrl}/admin/repairs/${repairCase.trackingId}`,
+      `Status client: ${statusUrl}`,
+      "",
+      "Reminder: răspunde direct acestui email pentru client, deoarece Reply-To este setat la adresa clientului."
     ].join("\n")
   });
 
-  redirect(statusUrl);
+  redirect(statusPath);
 }
 
 export default function RepairRequestPage() {
